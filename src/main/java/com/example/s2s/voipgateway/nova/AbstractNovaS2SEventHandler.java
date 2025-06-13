@@ -7,6 +7,13 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.services.polly.PollyClient;
+import software.amazon.awssdk.services.polly.model.Engine;
+import software.amazon.awssdk.services.polly.model.OutputFormat;
+import software.amazon.awssdk.services.polly.model.SynthesizeSpeechRequest;
+import software.amazon.awssdk.services.polly.model.SynthesizeSpeechResponse;
+import software.amazon.awssdk.core.ResponseInputStream;
+import software.amazon.awssdk.core.SdkBytes;
 
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
@@ -27,10 +34,18 @@ public abstract class AbstractNovaS2SEventHandler implements NovaS2SEventHandler
     private static final String ERROR_AUDIO_FILE = "error.wav";
     private final QueuedUlawInputStream audioStream = new QueuedUlawInputStream();
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private final PollyClient pollyClient;
     private InteractObserver<NovaSonicEvent> outbound;
     private String promptName;
     private boolean debugAudioOutput;
     private boolean playedErrorSound = false;
+    
+    // Polly configuration with default values
+    private final String voiceId = System.getenv().getOrDefault("POLLY_VOICE_ID", "Joanna");
+    private final String engineType = System.getenv().getOrDefault("POLLY_ENGINE", "neural");
+    private final String languageCode = System.getenv().getOrDefault("POLLY_LANGUAGE_CODE", "en-US");
+    private final String outputFormat = System.getenv().getOrDefault("POLLY_OUTPUT_FORMAT", "pcm");
+    private final String sampleRate = System.getenv().getOrDefault("POLLY_SAMPLE_RATE", "8000");
 
     public AbstractNovaS2SEventHandler() {
         this(null);
@@ -39,6 +54,7 @@ public abstract class AbstractNovaS2SEventHandler implements NovaS2SEventHandler
     public AbstractNovaS2SEventHandler(InteractObserver<NovaSonicEvent> outbound) {
         this.outbound = outbound;
         debugAudioOutput = "true".equalsIgnoreCase(System.getenv().getOrDefault("DEBUG_AUDIO_OUTPUT", "false"));
+        this.pollyClient = PollyClient.builder().build();
     }
 
     @Override
@@ -62,14 +78,40 @@ public abstract class AbstractNovaS2SEventHandler implements NovaS2SEventHandler
     public void handleAudioOutput(JsonNode node) {
         String content = node.get("content").asText();
         String role = node.get("role").asText();
+
         if (debugAudioOutput) {
             log.info("Received audio output {} from {}", content, role);
         }
-        byte[] data = decoder.decode(content);
+
         try {
-            audioStream.append(data);
-        } catch (InterruptedException e) {
-            log.error("Failed to append audio data to queued input stream", e);
+            // Create the speech synthesis request
+            SynthesizeSpeechRequest synthesizeSpeechRequest = SynthesizeSpeechRequest.builder()
+                .text(content)
+                .voiceId(voiceId)
+                .engine(engineType.equalsIgnoreCase("neural") ? Engine.NEURAL : Engine.STANDARD)
+                .languageCode(languageCode)
+                .outputFormat(OutputFormat.PCM)
+                .sampleRate(sampleRate)
+                .build();
+
+            // Call Amazon Polly to synthesize the text
+            ResponseInputStream<SynthesizeSpeechResponse> synthesisResponse = pollyClient.synthesizeSpeech(synthesizeSpeechRequest);
+            
+            // Get the audio stream
+            byte[] audioData = synthesisResponse.readAllBytes();
+
+            // Append the audio data to our stream
+            audioStream.append(audioData);
+            
+        } catch (Exception e) {
+            log.error("Failed to synthesize speech using Amazon Polly", e);
+            // Fallback to the original base64 decoding if Polly fails
+            try {
+                byte[] data = decoder.decode(content);
+                audioStream.append(data);
+            } catch (InterruptedException ie) {
+                log.error("Failed to append audio data to queued input stream", ie);
+            }
         }
     }
 
