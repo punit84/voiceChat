@@ -23,6 +23,8 @@ import org.zoolu.net.SocketAddress;
 
 import java.util.Map;
 
+import com.punit.sts.NovaMediaConfig;
+
 
 /**
  * VoIP Gateway/User Agent for Nova Sonic S2S.
@@ -122,7 +124,7 @@ public class NovaSonicVoipGateway extends RegisteringMultipleUAS {
         ServiceConfig serviceConfig = new ServiceConfig();
         NovaMediaConfig mediaConfig = new NovaMediaConfig();
         Map<String, String> environ = System.getenv();
-        mediaConfig.setNovaVoiceId(environ.getOrDefault("NOVA_VOICE_ID","en_us_matthew"));
+        mediaConfig.setNovaVoiceId(environ.getOrDefault("NOVA_VOICE_ID", "amy")); //en_gb_amy
         if (isConfigured(environ.get("NOVA_PROMPT"))) {
             mediaConfig.setNovaPrompt(environ.get("NOVA_PROMPT"));
         }
