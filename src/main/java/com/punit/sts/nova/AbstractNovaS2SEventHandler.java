@@ -25,6 +25,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import static com.punit.sts.constants.SonicAudioConfig.SAMPLE_RATE_STR;
+
 /**
  * Common NovaS2SEventHandler functionality.
  */
@@ -45,7 +47,7 @@ public abstract class AbstractNovaS2SEventHandler implements NovaS2SEventHandler
     private final String engineType = System.getenv().getOrDefault("POLLY_ENGINE", "neural");
     private final String languageCode = System.getenv().getOrDefault("POLLY_LANGUAGE_CODE", "en-IN");
     //private final String outputFormat = System.getenv().getOrDefault("POLLY_OUTPUT_FORMAT", "pcm");
-    private final String sampleRate = System.getenv().getOrDefault("POLLY_SAMPLE_RATE", "8000");
+    private final String sampleRate = System.getenv().getOrDefault("POLLY_SAMPLE_RATE", SAMPLE_RATE_STR);
 
     public AbstractNovaS2SEventHandler() {
         this(null);
