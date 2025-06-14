@@ -41,9 +41,9 @@ public abstract class AbstractNovaS2SEventHandler implements NovaS2SEventHandler
     private boolean playedErrorSound = false;
     
     // Polly configuration with default values
-    private final String voiceId = System.getenv().getOrDefault("POLLY_VOICE_ID", "Kajal");
+    private final String voiceId = System.getenv().getOrDefault("POLLY_VOICE_ID", "Aditi");
     private final String engineType = System.getenv().getOrDefault("POLLY_ENGINE", "neural");
-    private final String languageCode = System.getenv().getOrDefault("POLLY_LANGUAGE_CODE", "hi-IN");
+    private final String languageCode = System.getenv().getOrDefault("POLLY_LANGUAGE_CODE", "en-IN");
     //private final String outputFormat = System.getenv().getOrDefault("POLLY_OUTPUT_FORMAT", "pcm");
     private final String sampleRate = System.getenv().getOrDefault("POLLY_SAMPLE_RATE", "8000");
 
@@ -84,6 +84,7 @@ public abstract class AbstractNovaS2SEventHandler implements NovaS2SEventHandler
         }
 
         try {
+            //polly
             // Create the speech synthesis request
             SynthesizeSpeechRequest synthesizeSpeechRequest = SynthesizeSpeechRequest.builder()
                 .text(content)
