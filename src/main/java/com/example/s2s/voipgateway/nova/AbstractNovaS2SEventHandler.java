@@ -45,7 +45,7 @@ public abstract class AbstractNovaS2SEventHandler implements NovaS2SEventHandler
     private final String engineType = System.getenv().getOrDefault("POLLY_ENGINE", "neural");
     private final String languageCode = System.getenv().getOrDefault("POLLY_LANGUAGE_CODE", "hi-IN");
     //private final String outputFormat = System.getenv().getOrDefault("POLLY_OUTPUT_FORMAT", "pcm");
-    private final String sampleRate = System.getenv().getOrDefault("POLLY_SAMPLE_RATE", "16000");
+    private final String sampleRate = System.getenv().getOrDefault("POLLY_SAMPLE_RATE", "8000");
 
     public AbstractNovaS2SEventHandler() {
         this(null);
