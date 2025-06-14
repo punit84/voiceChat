@@ -41,7 +41,8 @@ public abstract class AbstractNovaS2SEventHandler implements NovaS2SEventHandler
     private String promptName;
     private boolean debugAudioOutput;
     private boolean playedErrorSound = false;
-    
+    private boolean polly = false;
+
     // Polly configuration with default values
     private final String voiceId = System.getenv().getOrDefault("POLLY_VOICE_ID", "Kajal");
     private final String engineType = System.getenv().getOrDefault("POLLY_ENGINE", "neural");
@@ -86,22 +87,28 @@ public abstract class AbstractNovaS2SEventHandler implements NovaS2SEventHandler
         }
 
         try {
-            //polly
-            // Create the speech synthesis request
-            SynthesizeSpeechRequest synthesizeSpeechRequest = SynthesizeSpeechRequest.builder()
-                .text(content)
-                .voiceId(voiceId)
-                .engine(engineType.equalsIgnoreCase("neural") ? Engine.NEURAL : Engine.STANDARD)
-                .languageCode(languageCode)
-                .outputFormat(OutputFormat.PCM)
-                .sampleRate(sampleRate)
-                .build();
+            byte[] audioData= null;
+            if (polly){
+                //polly
+                // Create the speech synthesis request
+                SynthesizeSpeechRequest synthesizeSpeechRequest = SynthesizeSpeechRequest.builder()
+                        .text(content)
+                        .voiceId(voiceId)
+                        .engine(engineType.equalsIgnoreCase("neural") ? Engine.NEURAL : Engine.STANDARD)
+                        .languageCode(languageCode)
+                        .outputFormat(OutputFormat.PCM)
+                        .sampleRate(sampleRate)
+                        .build();
 
-            // Call Amazon Polly to synthesize the text
-            ResponseInputStream<SynthesizeSpeechResponse> synthesisResponse = pollyClient.synthesizeSpeech(synthesizeSpeechRequest);
-            
-            // Get the audio stream
-            byte[] audioData = synthesisResponse.readAllBytes();
+                // Call Amazon Polly to synthesize the text
+                ResponseInputStream<SynthesizeSpeechResponse> synthesisResponse = pollyClient.synthesizeSpeech(synthesizeSpeechRequest);
+
+                // Get the audio stream
+               audioData = synthesisResponse.readAllBytes();
+            }else{
+                audioData = decoder.decode(content);
+            }
+
 
             // Append the audio data to our stream
             audioStream.append(audioData);

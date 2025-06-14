@@ -3,7 +3,7 @@ package com.punit.sts;
 import org.mjsip.ua.MediaConfig;
 
 public class NovaMediaConfig extends MediaConfig {
-    private static final String DEFAULT_VOICE_ID = "en_us_matthew";
+    private static final String DEFAULT_VOICE_ID = "en_gb_amy";
     private static final String DEFAULT_PROMPT = "You are a friendly assistant. The user and you will engage in a spoken dialog " +
             "exchanging the transcripts of a natural real-time conversation. Keep your responses short, " +
             "generally two or three sentences for chatty scenarios.";
