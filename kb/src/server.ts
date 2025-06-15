@@ -34,15 +34,9 @@ const pollyClient = new PollyClient({
 
 // Function to synthesize speech using Polly
 async function synthesizeSpeech(text: string): Promise<Buffer> {
-    // Get configuration from environment variables with defaults
-    console.log('printing text');
 
-    console.log(text);
-
+    console.log('start polly for content:',text);
     let contentText = (text as any).content;
-    console.log('printing content  here');
-
-    console.log(contentText);
 
     const command = new SynthesizeSpeechCommand({
         Text: contentText,
@@ -136,20 +130,32 @@ io.on('connection', (socket) => {
         session.onEvent('textOutput', async (data) => {
             console.log('Text output:', data);
             socket.emit('textOutput', data);
-            // Synthesize speech for the text output
-            try {
-                const audioBuffer = await synthesizeSpeech(data);
-                socket.emit('audioOutput', {
-                    content: audioBuffer.toString('base64'),
-                    type: 'AUDIO'
-                });
-            } catch (error) {
-                console.error('Error synthesizing speech for text output:', error);
-                socket.emit('error', {
-                    message: 'Error synthesizing speech',
-                    details: error instanceof Error ? error.message : String(error)
-                });
+            // Only synthesize speech for Nova's responses (when role is 'assistant')
+            let contentText = data.content;
+            console.log('content:',data.content);
+            console.log('Role:',data.role);
+            console.log('roleadditionalFieldsRaw:',data.roleadditionalFieldsRaw);
+
+            // Try to parse additionalModelFields and check for SPECULATIVE generationStage
+            if (data?.role === 'ASSISTANT') {
+                console.log('inside if');
+                try {
+                    const audioBuffer = await synthesizeSpeech(data);
+                    socket.emit('audioOutput', {
+                        content: audioBuffer.toString('base64'),
+                        type: 'AUDIO'
+                    });
+                } catch (error) {
+                    console.error('Error synthesizing speech for text output:', error);
+                    socket.emit('error', {
+                        message: 'Error synthesizing speech',
+                        details: error instanceof Error ? error.message : String(error)
+                    });
+                }
+            }else {
+                console.log('inside else');
             }
+
         });
 
         // Commenting out Nova Sonic audio output to use only Polly voice
