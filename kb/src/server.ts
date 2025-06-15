@@ -35,16 +35,21 @@ const pollyClient = new PollyClient({
 // Function to synthesize speech using Polly
 async function synthesizeSpeech(text: string): Promise<Buffer> {
     // Get configuration from environment variables with defaults
+    console.log('printing text');
 
-    // 👇 Ensure the text is a flat string
-    const sanitizedText = typeof text === 'string' ? text : JSON.stringify(text);
+    console.log(text);
+
+    let contentText = (text as any).content;
+    console.log('printing content  here');
+
+    console.log(contentText);
 
     const command = new SynthesizeSpeechCommand({
-        Text: sanitizedText,
+        Text: contentText,
         OutputFormat: "pcm", // Changed from pcm to mp3 for better compatibility
         VoiceId: "Kajal",
         Engine: "neural",
-        LanguageCode: "hi-IN",
+        LanguageCode: "en-IN",
         SampleRate: "16000"
     });
 
@@ -134,7 +139,10 @@ io.on('connection', (socket) => {
             // Synthesize speech for the text output
             try {
                 const audioBuffer = await synthesizeSpeech(data);
-                socket.emit('audioOutput', audioBuffer);
+                socket.emit('audioOutput', {
+                    content: audioBuffer.toString('base64'),
+                    type: 'AUDIO'
+                });
             } catch (error) {
                 console.error('Error synthesizing speech for text output:', error);
                 socket.emit('error', {
@@ -146,7 +154,7 @@ io.on('connection', (socket) => {
 
         // Commenting out Nova Sonic audio output to use only Polly voice
         session.onEvent('audioOutput', (data) => {
-            console.log('Audio output received but not sending to client (using Polly only)');
+            //console.log('Audio output received but not sending to client (using Polly only)');
 
             // socket.emit('audioOutput', data);
         });
