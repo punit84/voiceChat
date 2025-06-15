@@ -32,7 +32,6 @@ import static com.punit.sts.constants.SonicAudioConfig.SAMPLE_RATE_STR;
  */
 public abstract class AbstractNovaS2SEventHandler implements NovaS2SEventHandler {
     private static final Logger log = LoggerFactory.getLogger(AbstractNovaS2SEventHandler.class);
-    private static final Base64.Decoder decoder = Base64.getDecoder();
     private static final String ERROR_AUDIO_FILE = "error.wav";
     private final QueuedUlawInputStream audioStream = new QueuedUlawInputStream();
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -41,13 +40,12 @@ public abstract class AbstractNovaS2SEventHandler implements NovaS2SEventHandler
     private String promptName;
     private boolean debugAudioOutput;
     private boolean playedErrorSound = false;
-    private boolean polly = false;
+    private boolean polly = true;  // Always use Polly for voice responses
 
     // Polly configuration with default values
     private final String voiceId = System.getenv().getOrDefault("POLLY_VOICE_ID", "Kajal");
     private final String engineType = System.getenv().getOrDefault("POLLY_ENGINE", "neural");
     private final String languageCode = System.getenv().getOrDefault("POLLY_LANGUAGE_CODE", "en-IN");
-    //private final String outputFormat = System.getenv().getOrDefault("POLLY_OUTPUT_FORMAT", "pcm");
     private final String sampleRate = System.getenv().getOrDefault("POLLY_SAMPLE_RATE", SAMPLE_RATE_STR);
 
     public AbstractNovaS2SEventHandler() {
@@ -87,41 +85,26 @@ public abstract class AbstractNovaS2SEventHandler implements NovaS2SEventHandler
         }
 
         try {
-            byte[] audioData= null;
-            if (polly){
-                //polly
-                // Create the speech synthesis request
-                SynthesizeSpeechRequest synthesizeSpeechRequest = SynthesizeSpeechRequest.builder()
-                        .text(content)
-                        .voiceId(voiceId)
-                        .engine(engineType.equalsIgnoreCase("neural") ? Engine.NEURAL : Engine.STANDARD)
-                        .languageCode(languageCode)
-                        .outputFormat(OutputFormat.PCM)
-                        .sampleRate(sampleRate)
-                        .build();
+            // Create the speech synthesis request using Polly
+            SynthesizeSpeechRequest synthesizeSpeechRequest = SynthesizeSpeechRequest.builder()
+                    .text(content)
+                    .voiceId(voiceId)
+                    .engine(engineType.equalsIgnoreCase("neural") ? Engine.NEURAL : Engine.STANDARD)
+                    .languageCode(languageCode)
+                    .outputFormat(OutputFormat.PCM)
+                    .sampleRate(sampleRate)
+                    .build();
 
-                // Call Amazon Polly to synthesize the text
-                ResponseInputStream<SynthesizeSpeechResponse> synthesisResponse = pollyClient.synthesizeSpeech(synthesizeSpeechRequest);
+            // Call Amazon Polly to synthesize the text
+            ResponseInputStream<SynthesizeSpeechResponse> synthesisResponse = pollyClient.synthesizeSpeech(synthesizeSpeechRequest);
 
-                // Get the audio stream
-               audioData = synthesisResponse.readAllBytes();
-            }else{
-                audioData = decoder.decode(content);
-            }
-
-
-            // Append the audio data to our stream
+            // Get the audio stream and append to our stream
+            byte[] audioData = synthesisResponse.readAllBytes();
             audioStream.append(audioData);
             
         } catch (Exception e) {
             log.error("Failed to synthesize speech using Amazon Polly", e);
-            // Fallback to the original base64 decoding if Polly fails
-            try {
-                byte[] data = decoder.decode(content);
-                audioStream.append(data);
-            } catch (InterruptedException ie) {
-                log.error("Failed to append audio data to queued input stream", ie);
-            }
+            onError(e);
         }
     }
 

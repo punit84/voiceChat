@@ -5,6 +5,7 @@ import { Server } from 'socket.io';
 import { fromIni } from "@aws-sdk/credential-providers";
 import { NovaSonicBidirectionalStreamClient } from './client';
 import { Buffer } from 'node:buffer';
+import { PollyClient, SynthesizeSpeechCommand } from "@aws-sdk/client-polly";
 
 // Configure AWS credentials
 const AWS_PROFILE_NAME = process.env.AWS_PROFILE || 'bedrock-test';
@@ -24,6 +25,60 @@ const bedrockClient = new NovaSonicBidirectionalStreamClient({
         credentials: fromIni({ profile: AWS_PROFILE_NAME })
     }
 });
+
+// Create the AWS Polly client
+const pollyClient = new PollyClient({
+    region: process.env.AWS_REGION || "ap-south-1",
+    credentials: fromIni({ profile: AWS_PROFILE_NAME })
+});
+
+// Function to synthesize speech using Polly
+async function synthesizeSpeech(text: string): Promise<Buffer> {
+    // Get configuration from environment variables with defaults
+
+    // 👇 Ensure the text is a flat string
+    const sanitizedText = typeof text === 'string' ? text : JSON.stringify(text);
+
+    const command = new SynthesizeSpeechCommand({
+        Text: sanitizedText,
+        OutputFormat: "pcm", // Changed from pcm to mp3 for better compatibility
+        VoiceId: "Kajal",
+        Engine: "neural",
+        LanguageCode: "hi-IN",
+        SampleRate: "16000"
+    });
+
+    try {
+        // Log the AWS configuration being used
+        console.log('AWS Configuration:', {
+            region: pollyClient.config.region,
+            profile: process.env.AWS_PROFILE,
+            voiceId: command.input.VoiceId,
+            engine: command.input.Engine
+        });
+
+        const response = await pollyClient.send(command);
+        if (!response.AudioStream) {
+            throw new Error("No audio stream in response");
+        }
+        return Buffer.from(await response.AudioStream.transformToByteArray());
+    } catch (error) {
+        console.error("Error synthesizing speech:", error);
+        // Add more detailed error information
+        if (error instanceof Error) {
+            console.error("Error details:", {
+                name: error.name,
+                message: error.message,
+                stack: error.stack,
+                // Add AWS specific error information if available
+                requestId: (error as any).requestId,
+                cfId: (error as any).$metadata?.cfId,
+                statusCode: (error as any).$metadata?.httpStatusCode
+            });
+        }
+        throw new Error(`Speech synthesis failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+}
 
 // Periodically check for and close inactive sessions (every minute)
 // Sessions with no activity for over 5 minutes will be force closed
@@ -73,14 +128,27 @@ io.on('connection', (socket) => {
             socket.emit('contentStart', data);
         });
 
-        session.onEvent('textOutput', (data) => {
+        session.onEvent('textOutput', async (data) => {
             console.log('Text output:', data);
             socket.emit('textOutput', data);
+            // Synthesize speech for the text output
+            try {
+                const audioBuffer = await synthesizeSpeech(data);
+                socket.emit('audioOutput', audioBuffer);
+            } catch (error) {
+                console.error('Error synthesizing speech for text output:', error);
+                socket.emit('error', {
+                    message: 'Error synthesizing speech',
+                    details: error instanceof Error ? error.message : String(error)
+                });
+            }
         });
 
+        // Commenting out Nova Sonic audio output to use only Polly voice
         session.onEvent('audioOutput', (data) => {
-            console.log('Audio output received, sending to client');
-            socket.emit('audioOutput', data);
+            console.log('Audio output received but not sending to client (using Polly only)');
+
+            // socket.emit('audioOutput', data);
         });
 
         session.onEvent('error', (data) => {
@@ -239,6 +307,28 @@ io.on('connection', (socket) => {
 // Health check endpoint
 app.get('/health', (req, res) => {
     res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// Text-to-speech endpoint
+app.post('/synthesize', express.json(), async (req, res) => {
+    try {
+        const { text } = req.body;
+        if (!text) {
+            res.status(400).json({ error: 'Text parameter is required' });
+            return;
+        }
+
+        const audioBuffer = await synthesizeSpeech(text);
+        res.set('Content-Type', 'audio/mpeg');
+        res.set('Content-Length', audioBuffer.length.toString());
+        res.send(audioBuffer);
+    } catch (error) {
+        console.error('Error in /synthesize endpoint:', error);
+        res.status(500).json({
+            error: 'Failed to synthesize speech',
+            details: error instanceof Error ? error.message : String(error)
+        });
+    }
 });
 
 // Start the server
