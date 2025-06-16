@@ -34,48 +34,29 @@ const pollyClient = new PollyClient({
 
 // Function to synthesize speech using Polly
 async function synthesizeSpeech(text: string): Promise<Buffer> {
-    console.log('start polly for content:', text);
+    console.log('start polly for content:',text);
     let contentText = (text as any).content;
-    console.log('start polly for content:', contentText);
-    
-    // Wrap the text in SSML with prosody rate control
-    const ssmlText = `<speak><prosody rate="85%">${contentText}</prosody></speak>`;
-    
+    console.log('start polly for content:',contentText);
     const command = new SynthesizeSpeechCommand({
-        Text: ssmlText,
-        OutputFormat: "pcm",
+        Text: contentText,
+        OutputFormat: "pcm", // Changed from pcm to mp3 for better compatibility
         VoiceId: "Kajal",
         Engine: "neural",
         LanguageCode: "hi-IN",
-        SampleRate: "16000",
-        TextType: "ssml"  // Changed to ssml to support SSML markup
+        SampleRate: "16000"
+
     });
 
     try {
-        // Validate SSML content
-        if (!contentText || typeof contentText !== 'string') {
-            throw new Error('Invalid text content for SSML conversion');
-        }
-
-        // Escape special characters in the content text to prevent XML injection
-        contentText = contentText
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&apos;');
-
         // Log the AWS configuration being used
         console.log('AWS Configuration:', {
             region: pollyClient.config.region,
             profile: process.env.AWS_PROFILE,
             voiceId: command.input.VoiceId,
-            engine: command.input.Engine,
-            textType: command.input.TextType,
-            text: command.input.Text
-
+            engine: command.input.Engine
         });
 
+        console.log("punit printing command" +command )
         const response = await pollyClient.send(command);
         if (!response.AudioStream) {
             throw new Error("No audio stream in response");
@@ -94,17 +75,6 @@ async function synthesizeSpeech(text: string): Promise<Buffer> {
                 cfId: (error as any).$metadata?.cfId,
                 statusCode: (error as any).$metadata?.httpStatusCode
             });
-            
-            // Specific handling for SSML and Polly configuration issues
-            if (error.message.includes('SSML') || error.message.includes('ValidationException')) {
-                console.error("Polly SSML or configuration error detected. Please verify:", {
-                    engine: command.input.Engine,
-                    voiceId: command.input.VoiceId,
-                    textType: command.input.TextType,
-                    //ssmlContent: command.input.Text.substring(0, 200), // Log first 200 chars of SSML
-                    region: pollyClient.config.region
-                });
-            }
         }
         throw new Error(`Speech synthesis failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }

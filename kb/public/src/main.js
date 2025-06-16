@@ -36,6 +36,7 @@ let transcriptionReceived = false;
 let displayAssistantText = false;
 let role;
 const audioPlayer = new AudioPlayer();
+
 let sessionInitialized = false;
 
 // Initialize WebSocket audio

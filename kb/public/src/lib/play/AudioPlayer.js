@@ -18,7 +18,7 @@ export class AudioPlayer {
     }
 
     async start() {
-        this.audioContext = new AudioContext({ "sampleRate": 24000 });
+        this.audioContext = new AudioContext({ "sampleRate": 16000 });
         this.analyser = this.audioContext.createAnalyser();
         this.analyser.fftSize = 512;
 
