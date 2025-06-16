@@ -3,14 +3,14 @@ import { AudioType, AudioMediaType, TextMediaType } from "./types";
 export const DefaultInferenceConfiguration = {
   maxTokens: 1024,
   topP: 0.9,
-  temperature: 0.7,
+  temperature: 0.8,
 };
 
 export const DefaultAudioInputConfiguration = {
   audioType: "SPEECH" as AudioType,
   encoding: "base64",
   mediaType: "audio/lpcm" as AudioMediaType,
-  sampleRateHertz: 16000,
+  sampleRateHertz: 24000,
   sampleSizeBits: 16,
   channelCount: 1,
 };
@@ -77,6 +77,6 @@ Follow below response style and tone guidance when responding:
 
 export const DefaultAudioOutputConfiguration = {
   ...DefaultAudioInputConfiguration,
-  sampleRateHertz: 24000,
+  sampleRateHertz: 16000,
   voiceId: "tiffany",
 };

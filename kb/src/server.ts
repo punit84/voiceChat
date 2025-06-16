@@ -44,6 +44,7 @@ async function synthesizeSpeech(text: string): Promise<Buffer> {
         Engine: "neural",
         LanguageCode: "hi-IN",
         SampleRate: "16000"
+
     });
 
     try {
