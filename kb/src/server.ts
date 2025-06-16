@@ -34,10 +34,9 @@ const pollyClient = new PollyClient({
 
 // Function to synthesize speech using Polly
 async function synthesizeSpeech(text: string): Promise<Buffer> {
-
     console.log('start polly for content:',text);
-    let contentText = (text as any).content;
-
+    let contentText = (text as any).textOutput.content;
+    console.log('start polly for content:',contentText);
     const command = new SynthesizeSpeechCommand({
         Text: contentText,
         OutputFormat: "pcm", // Changed from pcm to mp3 for better compatibility
@@ -127,18 +126,12 @@ io.on('connection', (socket) => {
             socket.emit('contentStart', data);
         });
 
-        session.onEvent('textOutput', async (data) => {
-            console.log('Text output:', data);
-            socket.emit('textOutput', data);
+        session.onEvent('FinalAssistant', async(data) => {
+            console.log('FinalAssistant method:', data);
             // Only synthesize speech for Nova's responses (when role is 'assistant')
-            let contentText = data.content;
-            console.log('content:',data.content);
-            console.log('Role:',data.role);
-            console.log('roleadditionalFieldsRaw:',data.roleadditionalFieldsRaw);
-
-            // Try to parse additionalModelFields and check for SPECULATIVE generationStage
-            if (data?.role === 'ASSISTANT') {
-                console.log('inside if');
+            let contentText = data.textOutput.content;
+            console.log('content:',contentText);
+            console.log('Role:',data.textOutput.role);
                 try {
                     const audioBuffer = await synthesizeSpeech(data);
                     socket.emit('audioOutput', {
@@ -152,10 +145,12 @@ io.on('connection', (socket) => {
                         details: error instanceof Error ? error.message : String(error)
                     });
                 }
-            }else {
-                console.log('inside else');
-            }
+            socket.emit('textOutput', data);
 
+        });
+        session.onEvent('textOutput',  (data) => {
+            console.log('Text output:', data);
+            socket.emit('textOutput', data);
         });
 
         // Commenting out Nova Sonic audio output to use only Polly voice

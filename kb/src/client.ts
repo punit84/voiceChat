@@ -147,6 +147,7 @@ interface SessionData {
   isActive: boolean;
   isPromptStartSent: boolean;
   isAudioContentStartSent: boolean;
+  isFinalState: boolean;
   audioContentId: string;
 }
 
@@ -227,6 +228,7 @@ export class NovaSonicBidirectionalStreamClient {
       isActive: true,
       isPromptStartSent: false,
       isAudioContentStartSent: false,
+      isFinalState:false,
       audioContentId: randomUUID()
     };
 
@@ -482,11 +484,34 @@ export class NovaSonicBidirectionalStreamClient {
             const textResponse = new TextDecoder().decode(event.chunk.bytes);
 
             try {
+
               const jsonResponse = JSON.parse(textResponse);
+
               if (jsonResponse.event?.contentStart) {
+                const additionalModelFields = jsonResponse.event?.contentStart?.additionalModelFields;
+                console.log(additionalModelFields);
+                // Try to parse additionalModelFields and check for SPECULATIVE generationStage
+                const finaljsonResponse = JSON.parse(additionalModelFields);
+                session.isFinalState = false;
+                if (finaljsonResponse?.generationStage === 'FINAL'){
+                  console.log('FINAL');
+                  session.isFinalState = true;
+                }else{
+                  console.log('Not FINAL');
+                }
                 this.dispatchEvent(sessionId, 'contentStart', jsonResponse.event.contentStart);
+
               } else if (jsonResponse.event?.textOutput) {
-                this.dispatchEvent(sessionId, 'textOutput', jsonResponse.event.textOutput);
+                console.log('punit text'+jsonResponse.event?.textOutput);
+                console.log('punit text role'+jsonResponse.event?.textOutput?.role);
+                // Try to parse additionalModelFields and check for SPECULATIVE generationStage
+                if (jsonResponse.event?.textOutput?.role === 'ASSISTANT' && session.isFinalState) {
+                  console.log('Sending to  FinalAssistant '+jsonResponse.event?.textOutput);
+                  this.dispatchEvent(sessionId, 'FinalAssistant', jsonResponse.event);
+                }else{
+                  console.log("sending to textOutput");
+                  this.dispatchEvent(sessionId, 'textOutput', jsonResponse.event);
+                }
               } else if (jsonResponse.event?.audioOutput) {
                 this.dispatchEvent(sessionId, 'audioOutput', jsonResponse.event.audioOutput);
               } else if (jsonResponse.event?.toolUse) {
