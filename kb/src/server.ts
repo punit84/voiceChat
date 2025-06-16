@@ -35,15 +35,15 @@ const pollyClient = new PollyClient({
 // Function to synthesize speech using Polly
 async function synthesizeSpeech(text: string): Promise<Buffer> {
     console.log('start polly for content:',text);
-    let contentText = (text as any).textOutput.content;
+    let contentText = (text as any).content;
     console.log('start polly for content:',contentText);
     const command = new SynthesizeSpeechCommand({
         Text: contentText,
         OutputFormat: "pcm", // Changed from pcm to mp3 for better compatibility
         VoiceId: "Kajal",
         Engine: "neural",
-        LanguageCode: "en-IN",
-        SampleRate: "24000"
+        LanguageCode: "hi-IN",
+        SampleRate: "16000"
     });
 
     try {
@@ -129,9 +129,9 @@ io.on('connection', (socket) => {
         session.onEvent('FinalAssistant', async(data) => {
             console.log('FinalAssistant method:', data);
             // Only synthesize speech for Nova's responses (when role is 'assistant')
-            let contentText = data.textOutput.content;
+            let contentText = data.content;
             console.log('content:',contentText);
-            console.log('Role:',data.textOutput.role);
+            console.log('Role:',data.role);
                 try {
                     const audioBuffer = await synthesizeSpeech(data);
                     socket.emit('audioOutput', {

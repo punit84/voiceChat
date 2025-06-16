@@ -493,11 +493,11 @@ export class NovaSonicBidirectionalStreamClient {
                 // Try to parse additionalModelFields and check for SPECULATIVE generationStage
                 const finaljsonResponse = JSON.parse(additionalModelFields);
                 session.isFinalState = false;
-                if (finaljsonResponse?.generationStage === 'FINAL'){
-                  console.log('FINAL');
+                if (finaljsonResponse?.generationStage === 'SPECULATIVE'){
+                  console.log('SPECULATIVE');
                   session.isFinalState = true;
                 }else{
-                  console.log('Not FINAL');
+                  console.log('Not SPECULATIVE');
                 }
                 this.dispatchEvent(sessionId, 'contentStart', jsonResponse.event.contentStart);
 
@@ -507,10 +507,10 @@ export class NovaSonicBidirectionalStreamClient {
                 // Try to parse additionalModelFields and check for SPECULATIVE generationStage
                 if (jsonResponse.event?.textOutput?.role === 'ASSISTANT' && session.isFinalState) {
                   console.log('Sending to  FinalAssistant '+jsonResponse.event?.textOutput);
-                  this.dispatchEvent(sessionId, 'FinalAssistant', jsonResponse.event);
+                  this.dispatchEvent(sessionId, 'FinalAssistant', jsonResponse.event.textOutput);
                 }else{
                   console.log("sending to textOutput");
-                  this.dispatchEvent(sessionId, 'textOutput', jsonResponse.event);
+                  this.dispatchEvent(sessionId, 'textOutput', jsonResponse.event.textOutput);
                 }
               } else if (jsonResponse.event?.audioOutput) {
                 this.dispatchEvent(sessionId, 'audioOutput', jsonResponse.event.audioOutput);
