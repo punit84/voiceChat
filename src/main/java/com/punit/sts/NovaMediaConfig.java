@@ -9,7 +9,7 @@ public class NovaMediaConfig extends MediaConfig {
             "generally two or three sentences for chatty scenarios.";
     private static final int DEFAULT_MAX_TOKENS = 1024;
     private static final float DEFAULT_NOVA_TOP_P = 0.9F;
-    private static final float DEFAULT_NOVA_TEMPERATURE = 0.7F;
+    private static final float DEFAULT_NOVA_TEMPERATURE = 0.1F;
     private String novaVoiceId = DEFAULT_VOICE_ID;
     private String novaPrompt = DEFAULT_PROMPT;
     private int novaMaxTokens = DEFAULT_MAX_TOKENS;

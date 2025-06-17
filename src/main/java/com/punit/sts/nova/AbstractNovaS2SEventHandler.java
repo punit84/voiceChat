@@ -33,6 +33,7 @@ import static com.punit.sts.constants.SonicAudioConfig.SAMPLE_RATE_STR;
 public abstract class AbstractNovaS2SEventHandler implements NovaS2SEventHandler {
     private static final Logger log = LoggerFactory.getLogger(AbstractNovaS2SEventHandler.class);
     private static final String ERROR_AUDIO_FILE = "error.wav";
+    private static final Base64.Decoder decoder = Base64.getDecoder();
     private final QueuedUlawInputStream audioStream = new QueuedUlawInputStream();
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final PollyClient pollyClient;
@@ -96,12 +97,16 @@ public abstract class AbstractNovaS2SEventHandler implements NovaS2SEventHandler
                     .build();
 
             // Call Amazon Polly to synthesize the text
-            ResponseInputStream<SynthesizeSpeechResponse> synthesisResponse = pollyClient.synthesizeSpeech(synthesizeSpeechRequest);
+           // ResponseInputStream<SynthesizeSpeechResponse> synthesisResponse = pollyClient.synthesizeSpeech(synthesizeSpeechRequest);
 
             // Get the audio stream and append to our stream
-            byte[] audioData = synthesisResponse.readAllBytes();
-            audioStream.append(audioData);
-            
+           // byte[] audioData = synthesisResponse.readAllBytes();
+           // audioStream.append(audioData);
+
+            byte[] data=decoder.decode(content);
+            audioStream.append(data);
+
+
         } catch (Exception e) {
             log.error("Failed to synthesize speech using Amazon Polly", e);
             onError(e);
