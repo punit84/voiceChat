@@ -46,9 +46,9 @@
         // Polly configuration with default values
         private final String voiceId = System.getenv().getOrDefault("POLLY_VOICE_ID", "Kajal");
         private final String engineType = System.getenv().getOrDefault("POLLY_ENGINE", "neural");
-        private final String languageCode = System.getenv().getOrDefault("POLLY_LANGUAGE_CODE", "en-IN");
+        private final String languageCode = System.getenv().getOrDefault("POLLY_LANGUAGE_CODE", "hi-IN");
         private final String sampleRate = System.getenv().getOrDefault("POLLY_SAMPLE_RATE", SAMPLE_RATE_STR);
-
+        
         public AbstractNovaS2SEventHandler() {
             this(null);
         }

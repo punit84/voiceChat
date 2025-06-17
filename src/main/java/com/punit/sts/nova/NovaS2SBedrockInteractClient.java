@@ -65,6 +65,7 @@ public class NovaS2SBedrockInteractClient {
         // if the request finishes make sure to close the publisher properly
         completableFuture.thenApply(result -> {
             publisher.onComplete();
+            System.out.println("bedrock response:" +result);
             return result;
         });
 
