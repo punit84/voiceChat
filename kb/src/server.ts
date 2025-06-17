@@ -343,7 +343,7 @@ app.post('/synthesize', express.json(), async (req, res) => {
 });
 
 // Start the server
-const PORT = process.env.PORT || 80;
+const PORT = process.env.PORT || 8090;
 server.listen(PORT, () => {
     console.log(`Server listening on port ${PORT}`);
     console.log(`Open http://localhost:${PORT} in your browser to access the application`);
