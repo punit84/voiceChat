@@ -76,6 +76,12 @@
         public void handleTextOutput(JsonNode node) {
             String content = node.get("content").asText();
             System.out.println("TextOutput" +   node.get("content"));
+            }
+
+        @Override
+        public void handleAudioOutput(JsonNode node) {
+            String content = node.get("content").asText();
+            String role = node.get("role").asText();
 
             try {
                 // Create the speech synthesis request using Polly
@@ -88,27 +94,20 @@
                         .sampleRate(sampleRate)
                         .build();
 
-                 //Call Amazon Polly to synthesize the text
-   //              ResponseInputStream<SynthesizeSpeechResponse> synthesisResponse = pollyClient.synthesizeSpeech(synthesizeSpeechRequest);
+                //Call Amazon Polly to synthesize the text
+                ResponseInputStream<SynthesizeSpeechResponse> synthesisResponse = pollyClient.synthesizeSpeech(synthesizeSpeechRequest);
 
                 // Get the audio stream and append to our stream
- //                byte[] audioData = synthesisResponse.readAllBytes();
-                 //audioStream.append(audioData);
+                byte[] audioData = synthesisResponse.readAllBytes();
+                audioStream.append(audioData);
 
             } catch (Exception e) {
                 log.error("Failed to synthesize speech using Amazon Polly", e);
                 onError(e);
             }
-            }
-
-        @Override
-        public void handleAudioOutput(JsonNode node) {
-            String content = node.get("content").asText();
-            String role = node.get("role").asText();
-
             if (debugAudioOutput) {
                 log.info("Received audio output {} from {}", content, role);
-            }
+
             try {
                 byte[] data=decoder.decode(content);
                 audioStream.append(data);
@@ -116,7 +115,7 @@
             } catch (Exception e) {
                 log.error("Failed to synthesize speech using Amazon Polly", e);
                 onError(e);
-            }
+            }}
         }
 
         @Override
