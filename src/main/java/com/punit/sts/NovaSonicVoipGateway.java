@@ -196,7 +196,7 @@ public class NovaSonicVoipGateway extends RegisteringMultipleUAS {
                 new MediaSpec[]{
                         new MediaSpec(0,
                                 "PCMU",
-                                16000,
+                                8000,
                                 1,
                                 160)})};
     }
