@@ -8,6 +8,8 @@
     import com.fasterxml.jackson.databind.ObjectMapper;
     import org.slf4j.Logger;
     import org.slf4j.LoggerFactory;
+    import software.amazon.awssdk.profiles.Profile;
+    import software.amazon.awssdk.regions.Region;
     import software.amazon.awssdk.services.polly.PollyClient;
     import software.amazon.awssdk.services.polly.model.Engine;
     import software.amazon.awssdk.services.polly.model.OutputFormat;
@@ -56,7 +58,8 @@
         public AbstractNovaS2SEventHandler(InteractObserver<NovaSonicEvent> outbound) {
             this.outbound = outbound;
             debugAudioOutput = "true".equalsIgnoreCase(System.getenv().getOrDefault("DEBUG_AUDIO_OUTPUT", "false"));
-            this.pollyClient = PollyClient.builder().build();
+
+            this.pollyClient = PollyClient.builder().region(Region.US_EAST_1).build();
         }
 
         @Override
