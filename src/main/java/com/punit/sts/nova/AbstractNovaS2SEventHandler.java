@@ -48,7 +48,7 @@
         private final String engineType = System.getenv().getOrDefault("POLLY_ENGINE", "neural");
         private final String languageCode = System.getenv().getOrDefault("POLLY_LANGUAGE_CODE", "hi-IN");
         private final String sampleRate = System.getenv().getOrDefault("POLLY_SAMPLE_RATE", SAMPLE_RATE_STR);
-        
+
         public AbstractNovaS2SEventHandler() {
             this(null);
         }
@@ -89,11 +89,11 @@
                         .build();
 
                  //Call Amazon Polly to synthesize the text
-                 ResponseInputStream<SynthesizeSpeechResponse> synthesisResponse = pollyClient.synthesizeSpeech(synthesizeSpeechRequest);
+   //              ResponseInputStream<SynthesizeSpeechResponse> synthesisResponse = pollyClient.synthesizeSpeech(synthesizeSpeechRequest);
 
                 // Get the audio stream and append to our stream
-                 byte[] audioData = synthesisResponse.readAllBytes();
-                 audioStream.append(audioData);
+ //                byte[] audioData = synthesisResponse.readAllBytes();
+                 //audioStream.append(audioData);
 
             } catch (Exception e) {
                 log.error("Failed to synthesize speech using Amazon Polly", e);
@@ -112,7 +112,6 @@
             try {
                 byte[] data=decoder.decode(content);
                 audioStream.append(data);
-
 
             } catch (Exception e) {
                 log.error("Failed to synthesize speech using Amazon Polly", e);
