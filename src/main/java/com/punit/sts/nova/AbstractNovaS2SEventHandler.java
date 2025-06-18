@@ -86,31 +86,31 @@
             String content = node.get("content").asText();
             String role = node.get("role").asText();
 
-            try {
-                // Create the speech synthesis request using Polly
-                SynthesizeSpeechRequest synthesizeSpeechRequest = SynthesizeSpeechRequest.builder()
-                        .text(content)
-                        .voiceId(voiceId)
-                        .engine(engineType.equalsIgnoreCase("neural") ? Engine.NEURAL : Engine.STANDARD)
-                        .languageCode(languageCode)
-                        .outputFormat(OutputFormat.PCM)
-                        .sampleRate(sampleRate)
-                        .build();
-
-                //Call Amazon Polly to synthesize the text
-                ResponseInputStream<SynthesizeSpeechResponse> synthesisResponse = pollyClient.synthesizeSpeech(synthesizeSpeechRequest);
-
-                // Get the audio stream and append to our stream
-                byte[] audioData = synthesisResponse.readAllBytes();
-                audioStream.append(audioData);
-
-            } catch (Exception e) {
-                log.error("Failed to synthesize speech using Amazon Polly", e);
-                onError(e);
-            }
-            if (debugAudioOutput) {
-                log.info("Received audio output {} from {}", content, role);
-
+//            try {
+//                // Create the speech synthesis request using Polly
+//                SynthesizeSpeechRequest synthesizeSpeechRequest = SynthesizeSpeechRequest.builder()
+//                        .text(content)
+//                        .voiceId(voiceId)
+//                        .engine(engineType.equalsIgnoreCase("neural") ? Engine.NEURAL : Engine.STANDARD)
+//                        .languageCode(languageCode)
+//                        .outputFormat(OutputFormat.PCM)
+//                        .sampleRate(sampleRate)
+//                        .build();
+//
+//                //Call Amazon Polly to synthesize the text
+//                ResponseInputStream<SynthesizeSpeechResponse> synthesisResponse = pollyClient.synthesizeSpeech(synthesizeSpeechRequest);
+//
+//                // Get the audio stream and append to our stream
+//                byte[] audioData = synthesisResponse.readAllBytes();
+//                audioStream.append(audioData);
+//
+//            } catch (Exception e) {
+//                log.error("Failed to synthesize speech using Amazon Polly", e);
+//                onError(e);
+//            }
+//            if (debugAudioOutput) {
+//                log.info("Received audio output {} from {}", content, role);
+//}
             try {
                 byte[] data=decoder.decode(content);
                 audioStream.append(data);
@@ -118,7 +118,7 @@
             } catch (Exception e) {
                 log.error("Failed to synthesize speech using Amazon Polly", e);
                 onError(e);
-            }}
+            }
         }
 
         @Override
