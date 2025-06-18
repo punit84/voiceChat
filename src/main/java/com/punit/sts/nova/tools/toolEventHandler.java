@@ -14,6 +14,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -22,6 +23,43 @@ import java.util.Map;
 public class toolEventHandler extends AbstractNovaS2SEventHandler {
     private static final Logger log = LoggerFactory.getLogger(toolEventHandler.class);
     private static final String TIMEZONE = System.getenv().getOrDefault("TZ", "Asia/Kolkata");
+
+    public void processTool(String toolName, String content, Map<String, Object> output) {
+        if (toolName == null) {
+            log.warn("Tool name is null");
+            return;
+        }
+        switch (toolName) {
+            case "getDateTool": {
+                handleGetDateTool(output);
+                break;
+            }
+            case "getTimeTool": {
+                handleGetTimeTool(output);
+                break;
+            }
+            case "getDateAndTimeTool": {
+                handleGetDateAndTimeTool(output);
+                break;
+            }
+            case "trackPaymentTool": {
+                handleTrackPaymentTool(output);
+                break;
+            }
+            case "getstockvaluetool": {
+                handleGetStockValueTool(content,output);
+                break;
+            }
+            case "knowledgeBase": {
+                handleKnowledgeBaseTool(content,output);
+                break;
+            }
+            default: {
+                log.warn("Unhandled tool: {}", toolName);
+                output.put("error", "Tool not implemented in backend");
+            }
+        }
+    }
 
     @Override
     protected void handleToolInvocation(String toolUseId, String toolName, String content, Map<String, Object> output) {
@@ -52,7 +90,7 @@ public class toolEventHandler extends AbstractNovaS2SEventHandler {
                     break;
                 }
                 case "knowledgeBase": {
-                    handleKnowledgeBaseTool(output);
+                    handleKnowledgeBaseTool(content, output);
                     break;
                 }
                 default: {
@@ -168,9 +206,11 @@ public class toolEventHandler extends AbstractNovaS2SEventHandler {
         output.put("stock_value", resp);
     }
 
-    private void handleKnowledgeBaseTool(Map<String, Object> output) {
-        output.put("summary", "Paytm saw a 25% increase in wallet transactions in Q4.");
+    private void handleKnowledgeBaseTool(String query, Map<String, Object> output) {
 
+        List<String> results =  KnowledgeBaseService.retrieveKB(query);
+        System.out.println("knowledgebase resutls " +results);
+        output.put("results ", results);
 
     }
 
@@ -185,7 +225,6 @@ public class toolEventHandler extends AbstractNovaS2SEventHandler {
                     .build();
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
             System.out.println(response.body());
-
             return response.body();
         } catch (Exception e) {
             log.error("Curl failed for URL: {}", urlprefix, e);
