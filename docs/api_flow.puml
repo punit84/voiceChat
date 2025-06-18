@@ -1,0 +1,73 @@
+@startuml API Flow Diagram
+
+title Nova Sonic VoIP Gateway - API Flow and Tool Invocation
+
+participant "NovaSonicVoipGateway" as Gateway
+participant "NovaStreamerFactory" as Factory
+participant "NovaS2SBedrockInteractClient" as BedrockClient
+participant "DateTimeNovaS2SEventHandler" as EventHandler
+participant "BedrockRuntime" as Bedrock
+participant "AudioStreamer" as Streamer
+participant "NovaSonicAudioInput" as AudioInput
+participant "NovaSonicAudioOutput" as AudioOutput
+
+== Initialization ==
+[-> Gateway: main()
+activate Gateway
+Gateway -> Gateway: configure from env/args
+Gateway -> Factory: new NovaStreamerFactory()
+activate Factory
+
+== SIP Registration ==
+Gateway -> Gateway: registerWithKeepAlive()
+Gateway -> Gateway: scheduleKeepAlive()
+
+== Incoming Call Flow ==
+[-> Gateway: onUaIncomingCall()
+Gateway -> Factory: createMediaStreamer()
+activate Factory
+
+Factory -> BedrockClient: new NovaS2SBedrockInteractClient()
+activate BedrockClient
+
+Factory -> EventHandler: new DateTimeNovaS2SEventHandler()
+activate EventHandler
+
+Factory -> EventHandler: getToolConfiguration()
+EventHandler --> Factory: tool specs (getDateTool, getTimeTool)
+
+Factory -> BedrockClient: interactMultimodal()
+BedrockClient -> Bedrock: start session
+activate Bedrock
+
+Factory -> Streamer: new AudioStreamer()
+activate Streamer
+
+Factory -> AudioInput: new NovaSonicAudioInput()
+activate AudioInput
+
+Factory -> AudioOutput: new NovaSonicAudioOutput()
+activate AudioOutput
+
+== Tool Invocation Flow ==
+[-> EventHandler: handleToolInvocation()
+EventHandler -> EventHandler: switch(toolName)
+note right: Handle getDateTool\nor getTimeTool
+
+alt getDateTool
+    EventHandler -> EventHandler: handleGetDateTool()
+    EventHandler --> BedrockClient: date information
+else getTimeTool
+    EventHandler -> EventHandler: handleGetTimeTool()
+    EventHandler --> BedrockClient: time information
+end
+
+BedrockClient -> Bedrock: process tool response
+Bedrock --> AudioOutput: generate audio response
+
+== Audio Streaming ==
+AudioInput -> BedrockClient: stream audio input
+BedrockClient -> Bedrock: process audio
+Bedrock --> AudioOutput: stream audio output
+
+@enduml

@@ -47,7 +47,7 @@ public class DateTimeNovaS2SEventHandler extends AbstractNovaS2SEventHandler {
                 break;
             }
             case "getstockvaluetool": {
-                handleGetStockValueTool(output);
+                handleGetStockValueTool(content,output);
                 break;
             }
             case "knowledgeBase": {
