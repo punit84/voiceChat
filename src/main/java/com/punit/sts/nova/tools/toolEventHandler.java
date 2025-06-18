@@ -108,16 +108,50 @@ public class toolEventHandler extends AbstractNovaS2SEventHandler {
                         PromptStartEvent.Tool.builder()
                                 .toolSpec(PromptStartEvent.ToolSpec.builder()
                                         .name("getDateTool")
-                                        .description("get information about the current date")
+                                        .description("Get information about the current date")
                                         .inputSchema(ToolSpecs.DEFAULT_TOOL_SPEC)
-                                        .build()).build(),
+                                        .build())
+                                .build(),
+
                         PromptStartEvent.Tool.builder()
-                                .toolSpec(
-                                        PromptStartEvent.ToolSpec.builder()
-                                                .name("getTimeTool")
-                                                .description("get information about the current time")
-                                                .inputSchema(ToolSpecs.DEFAULT_TOOL_SPEC)
-                                                .build()).build()
+                                .toolSpec(PromptStartEvent.ToolSpec.builder()
+                                        .name("getTimeTool")
+                                        .description("Get information about the current time")
+                                        .inputSchema(ToolSpecs.DEFAULT_TOOL_SPEC)
+                                        .build())
+                                .build(),
+
+                        PromptStartEvent.Tool.builder()
+                                .toolSpec(PromptStartEvent.ToolSpec.builder()
+                                        .name("getDateAndTimeTool")
+                                        .description("Get current date and time in IST")
+                                        .inputSchema(ToolSpecs.DEFAULT_TOOL_SPEC)
+                                        .build())
+                                .build(),
+
+                        PromptStartEvent.Tool.builder()
+                                .toolSpec(PromptStartEvent.ToolSpec.builder()
+                                        .name("getstockvaluetool")
+                                        .description("Fetch current stock price of a company")
+                                        .inputSchema(ToolSpecs.STOCK_VALUE_TOOL_SPEC)
+                                        .build())
+                                .build(),
+
+                        PromptStartEvent.Tool.builder()
+                                .toolSpec(PromptStartEvent.ToolSpec.builder()
+                                        .name("trackPaymentTool")
+                                        .description("Track status of a UPI or digital payment by ID")
+                                        .inputSchema(ToolSpecs.PAYMENT_TRACKING_TOOL_SPEC)
+                                        .build())
+                                .build(),
+
+                        PromptStartEvent.Tool.builder()
+                                .toolSpec(PromptStartEvent.ToolSpec.builder()
+                                        .name("knowledgeBase")
+                                        .description("Ask questions related to financial or business data from the knowledge base")
+                                        .inputSchema(ToolSpecs.KB_TOOL_SPEC)
+                                        .build())
+                                .build()
                 ))
                 .build();
     }
