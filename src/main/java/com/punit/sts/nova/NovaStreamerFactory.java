@@ -4,8 +4,7 @@ import com.punit.sts.constants.MediaTypes;
 import com.punit.sts.constants.SonicAudioConfig;
 import com.punit.sts.constants.SonicAudioTypes;
 import com.punit.sts.nova.event.*;
-import com.punit.sts.nova.event.*;
-import com.punit.sts.nova.tools.DateTimeNovaS2SEventHandler;
+import com.punit.sts.nova.tools.toolEventHandler;
 import com.punit.sts.NovaMediaConfig;
 import com.punit.sts.NovaSonicAudioInput;
 import com.punit.sts.NovaSonicAudioOutput;
@@ -59,18 +58,18 @@ public class NovaStreamerFactory implements StreamerFactory {
         String promptName = UUID.randomUUID().toString();
 
         NovaS2SBedrockInteractClient novaClient = new NovaS2SBedrockInteractClient(client, "amazon.nova-sonic-v1:0");
-        NovaS2SEventHandler eventHandler = new DateTimeNovaS2SEventHandler();
+        NovaS2SEventHandler toolHandler = new toolEventHandler();
 
         log.info("Using system prompt: {}", mediaConfig.getNovaPrompt());
 
         InteractObserver<NovaSonicEvent> inputObserver = novaClient.interactMultimodal(
                 createSessionStartEvent(),
-                createPromptStartEvent(promptName, eventHandler),
+                createPromptStartEvent(promptName, toolHandler),
                 createSystemPrompt(promptName, mediaConfig.getNovaPrompt()),
-                eventHandler);
+                toolHandler);
 
-        eventHandler.setOutbound(inputObserver);
-        AudioTransmitter tx = new NovaSonicAudioInput(eventHandler);
+        toolHandler.setOutbound(inputObserver);
+        AudioTransmitter tx = new NovaSonicAudioInput(toolHandler);
         AudioReceiver rx = new NovaSonicAudioOutput(inputObserver, promptName);
 
         StreamerOptions options = StreamerOptions.builder()
@@ -85,10 +84,10 @@ public class NovaStreamerFactory implements StreamerFactory {
     /**
      * Creates the PromptStart event.
      * @param promptName The prompt name for the session.
-     * @param eventHandler The event handler for the session.
+     * @param toolHandler The event handler for the session.
      * @return The PromptStartEvent
      */
-    private PromptStartEvent createPromptStartEvent(String promptName, NovaS2SEventHandler eventHandler) {
+    private PromptStartEvent createPromptStartEvent(String promptName, NovaS2SEventHandler toolHandler) {
         return new PromptStartEvent(PromptStartEvent.PromptStart.builder()
                 .promptName(promptName)
                 .textOutputConfiguration(MediaConfiguration.builder().mediaType(MediaTypes.TEXT_PLAIN).build())
@@ -102,7 +101,7 @@ public class NovaStreamerFactory implements StreamerFactory {
                         .audioType(SonicAudioTypes.SPEECH)
                         .build())
                 .toolUseOutputConfiguration(MediaConfiguration.builder().mediaType(MediaTypes.APPLICATION_JSON).build())
-                .toolConfiguration(eventHandler.getToolConfiguration())
+                .toolConfiguration(toolHandler.getToolConfiguration())
                 .build());
     }
 

@@ -19,16 +19,15 @@ import java.util.Map;
 /**
  * S2S Event Handler that is aware of the date and time via tools.
  */
-public class DateTimeNovaS2SEventHandler extends AbstractNovaS2SEventHandler {
-    private static final Logger log = LoggerFactory.getLogger(DateTimeNovaS2SEventHandler.class);
-    private static final String TIMEZONE = System.getenv().getOrDefault("TZ", "America/Los_Angeles");
+public class toolEventHandler extends AbstractNovaS2SEventHandler {
+    private static final Logger log = LoggerFactory.getLogger(toolEventHandler.class);
+    private static final String TIMEZONE = System.getenv().getOrDefault("TZ", "Asia/Kolkata");
 
     public void processTool(String toolName, String content, Map<String, Object> output) {
         if (toolName == null) {
             log.warn("Tool name is null");
             return;
         }
-
         switch (toolName) {
             case "getDateTool": {
                 handleGetDateTool(output);
