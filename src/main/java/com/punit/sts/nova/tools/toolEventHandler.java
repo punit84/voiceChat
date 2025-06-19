@@ -204,7 +204,7 @@ public class toolEventHandler extends AbstractNovaS2SEventHandler {
             e.printStackTrace();
         }
 
-       String urlprefix= "https://awspe.com/api/price?stock=" +stock.trim();
+       String urlprefix= "https://awspe.com/api/price?stock=" +companyName.trim();
         try {
             HttpClient client = HttpClient.newHttpClient();
             HttpRequest request = HttpRequest.newBuilder()
