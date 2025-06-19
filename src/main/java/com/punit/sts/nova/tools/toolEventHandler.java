@@ -1,5 +1,7 @@
 package com.punit.sts.nova.tools;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.punit.sts.nova.AbstractNovaS2SEventHandler;
 import com.punit.sts.nova.event.PromptStartEvent;
 import org.slf4j.Logger;
@@ -23,43 +25,6 @@ import java.util.Map;
 public class toolEventHandler extends AbstractNovaS2SEventHandler {
     private static final Logger log = LoggerFactory.getLogger(toolEventHandler.class);
     private static final String TIMEZONE = System.getenv().getOrDefault("TZ", "Asia/Kolkata");
-
-    public void processTool(String toolName, String content, Map<String, Object> output) {
-        if (toolName == null) {
-            log.warn("Tool name is null");
-            return;
-        }
-        switch (toolName) {
-            case "getDateTool": {
-                handleGetDateTool(output);
-                break;
-            }
-            case "getTimeTool": {
-                handleGetTimeTool(output);
-                break;
-            }
-            case "getDateAndTimeTool": {
-                handleGetDateAndTimeTool(output);
-                break;
-            }
-            case "trackPaymentTool": {
-                handleTrackPaymentTool(output);
-                break;
-            }
-            case "getstockvaluetool": {
-                handleGetStockValueTool(content,output);
-                break;
-            }
-            case "knowledgeBase": {
-                handleKnowledgeBaseTool(content,output);
-                break;
-            }
-            default: {
-                log.warn("Unhandled tool: {}", toolName);
-                output.put("error", "Tool not implemented in backend");
-            }
-        }
-    }
 
     @Override
     protected void handleToolInvocation(String toolUseId, String toolName, String content, Map<String, Object> output) {
@@ -215,6 +180,29 @@ public class toolEventHandler extends AbstractNovaS2SEventHandler {
     }
 
     private String performCurl(String stock) {
+        String companyName = "apple";
+        log.info("Performing curl for stock: {}", stock);
+
+        try {
+            // Create an ObjectMapper instance
+            ObjectMapper objectMapper = new ObjectMapper();
+
+            // Read the JSON string into a JsonNode
+            JsonNode rootNode = objectMapper.readTree(stock);
+
+            // Get the value of the "companyName" field
+            JsonNode companyNameNode = rootNode.get("companyName");
+
+            // Check if the node exists and is not null, then get its text value
+            if (companyNameNode != null) {
+                companyName = companyNameNode.asText();
+            }
+
+            System.out.println("Company Name: " + companyName); // Output: Company Name: Amazon
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
        String urlprefix= "https://awspe.com/api/price?stock=" +stock.trim();
         try {
